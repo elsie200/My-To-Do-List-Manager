@@ -13,7 +13,6 @@ command_map = {
 }
 
 single_arg_command_map = {
-    #"ongoing_tasks": commands.ongoing_tasks,
     "ongoing_tasks": commands.ongoing_tasks,
     "view_completed_tasks": commands.view_completed_tasks
 }

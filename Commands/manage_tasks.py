@@ -158,6 +158,7 @@ class TaskFrame(BoxLayout):
         self.bg.size = self.size
         self.border.rounded_rectangle = [self.x, self.y, self.width, self.height, 15]
 
+
 #classe pour créer les tabs
 class TaskTab(TabbedPanelItem):
     def __init__(self, category_name, dbname, task_list_screen, **kwargs):
@@ -280,6 +281,7 @@ class TaskListScreen(Screen):
         self.pending_tab.display_tasks()
         self.completed_tab.display_tasks()
 
+    #cette fonction ouvre une nouvelle fenêtre, elle doit donc être placée dans une classe qui hérite de Screen. Elle sera utilisée dans TaskFrame pour mettre à jour les données et ouvrir TaskDetails
     def open_task_details(self, task, instance):
         # Set task data in the TaskDetailScreen and navigate to it
         task_detail_screen = self.manager.get_screen('task_details')
@@ -376,6 +378,7 @@ class TaskDetailScreen(Screen):
 #
         self.add_widget(final_layout)
         
+    #c'est la fonction qui est utilisée dans open_details=_task pour mettre à jour les informations sur l'écran
     def set_task_data(self, task):
         self.task=task
         self.project_name.text = task['name']
@@ -385,6 +388,7 @@ class TaskDetailScreen(Screen):
         self.priority.text = task['priority']
         self.status.text = task['status']
 
+    #il y a sur l'écran un edit_button. Quand on clique dessus, cette fonction récupère l'écran d'édition et utilise sa fonction set_task_data pour mettre à jour les infos là bas afin qu'elles soient écrites et affichées
     def edit_task(self, instance):
         edit_task_screen = self.manager.get_screen('edit_task')
         edit_task_screen.set_task_data({
@@ -397,12 +401,14 @@ class TaskDetailScreen(Screen):
         })
         self.manager.current = 'edit_task'
 
+    #il y a un bouton delete sur l'écran. Cette fonction permet de supprimer la tâche que l'utilisateur visualisait
     def delete(self, instance):
         task_name = self.project_name.text
         #afficher le pop up. Si la réponse est oui, alors on appelle la fonction de déletion
         self.dbname = gcommands.task_deletion(task_name, self.dbname)
         self.go_back(instance)
     
+    #cette fonction ajoute un cadre autour des éléments écrits
     def add_frame(self, widget):
         with widget.canvas.before:
             # Background color (light gray)
@@ -415,6 +421,7 @@ class TaskDetailScreen(Screen):
         # Bind size and position updates for background and border
         widget.bind(pos=self.update_shape, size=self.update_shape)
 
+    #cette fonction est à utiliser en complément de add_frame pour modifier les positions du cadre ajouté
     def update_shape(self, widget, *args):
         widget.bg.pos = widget.pos
         widget.bg.size = widget.size
