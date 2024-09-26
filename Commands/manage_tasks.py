@@ -15,6 +15,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.popup import Popup
 from kivy.uix.spinner import Spinner
 from kivymd.uix.pickers import MDDatePicker
+from kivy.uix.image import Image
 
 
 def get_day_with_suffix(day):
@@ -318,43 +319,43 @@ class TaskDetailScreen(Screen):
     def __init__(self, dbname, **kwargs):
         super(TaskDetailScreen, self).__init__(**kwargs)
 
+        background = Image(source='task_details.png', allow_stretch=True, keep_ratio=False)
+        self.add_widget(background)
+
         main_layout = GridLayout(cols=2, padding=[20, 20, 20, 20], spacing=10, size_hint=(1, 1))
+        main_layout.bind(minimum_height=main_layout.setter('height'))
+
         self.dbname = dbname
         # Left column (Project Name, Project Description, Status)
         left_layout = GridLayout(cols=1, spacing=20, size_hint_y=None)
         left_layout.bind(minimum_height=left_layout.setter('height'))
         # Project Name
         left_layout.add_widget(Label(text="[b]Project Name[/b]", size_hint=(1, None), height=50,color=(0, 0, 0, 1),markup=True))
-        self.project_name = Label(text="", font_size=24, color=(0, 0, 0, 1))
-        self.add_frame(self.project_name)
+        self.project_name = Label(text="", font_size=32, color=(0, 0, 0, 1), halign='center', valign='middle')
         left_layout.add_widget(self.project_name)
         # Project Description
         left_layout.add_widget(Label(text="[b]Project description[/b]", size_hint=(1, None), height=50,color=(0, 0, 0, 1),markup=True))
-        self.project_description = Label(text="", font_size=24, color=(0, 0, 0, 1))
-        self.add_frame(self.project_description)
+        self.project_description = Label(text="", font_size=32, color=(0, 0, 0, 1), halign='center', valign='middle')
         left_layout.add_widget(self.project_description)
         # Status
         left_layout.add_widget(Label(text="[b]Status[/b]", size_hint=(1, None), height=50,color=(0, 0, 0, 1),markup=True))
-        self.status = Label(text="", font_size=24, color=(0, 0, 0, 1))
-        self.add_frame(self.status)
+        self.status = Label(text="", font_size=32, color=(0, 0, 0, 1), halign='center', valign='middle')
         left_layout.add_widget(self.status)
+
         # Right column (Deadline, Category, Priority)
         right_layout = GridLayout(cols=1, spacing=20, size_hint_y=None)
         right_layout.bind(minimum_height=right_layout.setter('height'))
         # Deadline
         right_layout.add_widget(Label(text="[b]Deadline[/b]", size_hint=(1, None), height=50,color=(0, 0, 0, 1),markup=True))
-        self.deadline = Label(text="", font_size=24, color=(0, 0, 0, 1))
-        self.add_frame(self.deadline)
+        self.deadline = Label(text="", font_size=32, color=(0, 0, 0, 1), halign='center', valign='middle')
         right_layout.add_widget(self.deadline)
         # Category
         right_layout.add_widget(Label(text="[b]Category[/b]", size_hint=(1, None), height=50,color=(0, 0, 0, 1),markup=True))
-        self.category = Label(text="", font_size=24, color=(0, 0, 0, 1))
-        self.add_frame(self.category)
+        self.category = Label(text="", font_size=32, color=(0, 0, 0, 1), halign='center', valign='middle')
         right_layout.add_widget(self.category)
         # Priority
         right_layout.add_widget(Label(text="[b]Priority[/b]", size_hint=(1, None), height=50,color=(0, 0, 0, 1),markup=True))
-        self.priority = Label(text="", font_size=24, color=(0, 0, 0, 1))
-        self.add_frame(self.priority)
+        self.priority = Label(text="", font_size=32, color=(0, 0, 0, 1), halign='center', valign='middle')
         right_layout.add_widget(self.priority)
         # Add left and right layouts to the main layout
         main_layout.add_widget(left_layout)
@@ -362,7 +363,7 @@ class TaskDetailScreen(Screen):
         # Buttons layout (Edit, Delete, Back)
         buttons_layout = BoxLayout(orientation='horizontal', size_hint=(1, None), height=70, spacing=20)
         # Back Button (Placed on the left side, styled to match the others)
-        back_button = Button(text="Back", background_color=(0, 0.5, 1, 1), size_hint=(0.4, 1))
+        back_button = Button(text="Back", background_color=(0, 0, 1, 1), size_hint=(0.4, 1))
         back_button.bind(on_press=self.go_back)  # Function to go back to the previous screen
         buttons_layout.add_widget(back_button)
         # Edit Button
@@ -372,7 +373,8 @@ class TaskDetailScreen(Screen):
         # Delete Button
         delete_button = Button(text="Delete", background_color=(0, 0, 1, 1), size_hint=(0.4, 1))
         buttons_layout.add_widget(delete_button)
-        final_layout = BoxLayout(orientation='vertical', spacing=10)
+        #size_hint=(1, 1)
+        final_layout = BoxLayout(orientation='vertical', spacing=10, size_hint=(1, 1), pos_hint={'center_x': 0.5, 'center_y': 0.5})
         final_layout.add_widget(main_layout)
         final_layout.add_widget(buttons_layout)
 #
@@ -407,25 +409,6 @@ class TaskDetailScreen(Screen):
         #afficher le pop up. Si la réponse est oui, alors on appelle la fonction de déletion
         self.dbname = gcommands.task_deletion(task_name, self.dbname)
         self.go_back(instance)
-    
-    #cette fonction ajoute un cadre autour des éléments écrits
-    def add_frame(self, widget):
-        with widget.canvas.before:
-            # Background color (light gray)
-            Color(0.9, 0.9, 0.9, 1)  
-            widget.bg = Rectangle(pos=widget.pos, size=widget.size)
-            # Border color (black) and border line
-            Color(0, 0, 0, 1)  
-            widget.border = Line(rectangle=(widget.x, widget.y, widget.width, widget.height), width=2)
-
-        # Bind size and position updates for background and border
-        widget.bind(pos=self.update_shape, size=self.update_shape)
-
-    #cette fonction est à utiliser en complément de add_frame pour modifier les positions du cadre ajouté
-    def update_shape(self, widget, *args):
-        widget.bg.pos = widget.pos
-        widget.bg.size = widget.size
-        widget.border.rectangle = (widget.x, widget.y, widget.width, widget.height)
 
     def go_back(self, instance):
         # Navigate back to the task list

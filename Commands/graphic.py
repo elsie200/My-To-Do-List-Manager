@@ -9,6 +9,8 @@ from kivy.core.window import Window
 import manage_tasks
 import actions_pages
 from kivymd.app import MDApp
+from kivy.uix.image import Image
+
 
 #client = MongoClient('mongodb://localhost:27017/')
 #db = client['my_todo_app']
@@ -24,12 +26,15 @@ class WelcomeScreen(Screen):
         #définition de la disposition de la fenêtre
         self.window = GridLayout()
         self.window.cols = 1
-        self.window.size_hint = (0.4, 0.3)
+        self.window.size_hint = (0.4, 0.7)
         self.window.pos_hint =  {"center_x":0.5, "center_y":0.5}
         # Add padding and spacing to the GridLayout
         self.window.padding = [20, 20, 20, 20]  # Padding around the grid
         self.window.spacing = [10, 10]  # Spacing between widgets
 
+        logo_image = Image(source='mylogo.png', size_hint=(0.4, None), size=(500, 500), allow_stretch=True)
+        logo_image.pos_hint = {"center_x": 0.5}  # Center the image horizontally
+        self.window.add_widget(logo_image)
         #création et ajouts des widgets/éléments dans la fenêtre
         welcome_label = Label(text="Welcome to your Smart To-Do Manager", color=(0, 0, 0, 1), halign="center",valign="middle")
         self.window.add_widget(welcome_label)
@@ -66,15 +71,18 @@ class LoginScreen(Screen):
         #defining window distribution
         self.window = GridLayout()
         self.window.cols = 1
-        self.window.size_hint = (0.4, 0.3)
+        self.window.size_hint = (0.4, 0.8)
         self.window.pos_hint =  {"center_x":0.5, "center_y":0.5}
 
         # Add padding and spacing to the GridLayout
-        self.window.padding = [20, 20, 20, 20]  # Padding around the grid
+        self.window.padding = [15,15,15,15]  # Padding around the grid
         self.window.spacing = [10, 10]  # Spacing between widgets
 
+        logo_image = Image(source='mylogo.png', size_hint=(0.4, None), size=(500, 500), allow_stretch=True)
+        logo_image.pos_hint = {"center_x": 0.5}  # Center the image horizontally
+        self.window.add_widget(logo_image)
         #defining elements/widgets to add
-        self.label = Label(text="Login", font_size=24, color=(0, 0, 0, 1), halign="center",valign="middle")
+        self.label = Label(text="[b]Login[/b]", font_size=40, color=(0, 0, 0, 1), halign="center",valign="middle",markup=True)
         self.window.add_widget(self.label)
 
         self.username = TextInput(hint_text='Username', multiline=False, hint_text_color="#000000", background_color=(1, 1, 1, 1))
@@ -136,15 +144,18 @@ class RegisterScreen(Screen):
         #defining window distribution
         self.window = GridLayout()
         self.window.cols = 1
-        self.window.size_hint = (0.5, 0.3)
+        self.window.size_hint = (0.4, 0.8)
         self.window.pos_hint =  {"center_x":0.5, "center_y":0.5}
 
         # Add padding and spacing to the GridLayout
-        self.window.padding = [20, 20, 20, 20]  # Padding around the grid
+        self.window.padding = [15,15,15,15]  # Padding around the grid
         self.window.spacing = [10, 10]  # Spacing between widgets
 
+        logo_image = Image(source='mylogo.png', size_hint=(0.4, None), size=(500, 500), allow_stretch=True)
+        logo_image.pos_hint = {"center_x": 0.5}  # Center the image horizontally
+        self.window.add_widget(logo_image)
         #defining elements or widgets
-        self.label = Label(text="Register", font_size=24, color=(0, 0, 0, 1), halign="center",valign="middle")
+        self.label = Label(text="[b]Register[/b]", font_size=40, color=(0, 0, 0, 1), halign="center",valign="middle", markup=True)
         self.mail = TextInput(hint_text='Mail address', multiline=False, hint_text_color=(0, 0, 0, 1))
         self.username = TextInput(hint_text='Username', multiline=False, hint_text_color=(0, 0, 0, 1))
         self.password = TextInput(hint_text='Input a strong password: at least seven characters', multiline=False, password=True, password_mask='*', hint_text_color=(0, 0, 0, 1))
