@@ -93,6 +93,7 @@ def completed_tasks(dbname):
     # Convert the cursor to a list and return the tasks
     return user_tasks
 
+#function to edit a task
 def task_edition(updated_task, dbname):
     tasks_collection = dbname["tasks"]
     task_to_edit = tasks_collection.find_one({"name":updated_task["name"],"creator_name":connected_user})
@@ -113,6 +114,7 @@ def task_edition(updated_task, dbname):
             print("No changes were made to the task.\n")
     return dbname
 
+#function to create tasks
 def task_creation(task, dbname):
     task_infos = {
                 "creator_name": connected_user,

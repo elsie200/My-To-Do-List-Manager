@@ -105,6 +105,7 @@ class LoginScreen(Screen):
 
         self.add_widget(self.window)
 
+    #function to login that uses the login_user function
     def login_action(self, instance):
         username = self.username.text
         password = self.password.text
@@ -179,6 +180,7 @@ class RegisterScreen(Screen):
 
         self.add_widget(self.window)
 
+    #function used by the class to create/register a user
     def create_user(self, instance):
         username = self.username.text
         password = self.password.text

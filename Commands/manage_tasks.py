@@ -100,9 +100,11 @@ class FilterPopup(Popup):
         date_dialog.bind(on_save=self.set_date)  # Bind the on_save event to set_date
         date_dialog.open()  # Open the date picker
 
+    #function to set the date_label value using the value from the date picker
     def set_date(self, instance, value, *args):
         self.date_label.text = f"{value.strftime('%Y-%m-%d')}"
 
+    #avec cette fonction, je récupère toutes les valeurs séclectionnées par l'utilisateur dans le filtre et j'appelle la fonction d'affichage des valeurs filtrées
     def apply_filter(self, instance):
         # Retrieve the values from the form
         try:
@@ -193,6 +195,7 @@ class TaskTab(TabbedPanelItem):
         self.bg.pos = self.pos
         self.bg.size = self.size
     
+    #fonction d'affichage normal des tâches
     def display_tasks(self):
         print("hi test")
         # Retrieve tasks from the database
@@ -278,6 +281,7 @@ class TaskListScreen(Screen):
         self.layout.add_widget(add_button)
         self.add_widget(self.layout)
 
+    #cette fonction s'exécute dès qu'on entre dans l'application
     def on_enter(self):
         # Cette méthode est appelée à chaque fois que cet écran est affiché
         print("Screen entered.")
@@ -292,6 +296,8 @@ class TaskListScreen(Screen):
         task_detail_screen.set_task_data(task)
         self.manager.current = 'task_details'
 
+    #cette fonction récupère la valeur entrée dans le bouton de recherche et appelle des fonctions spéciales d'affichage en fonction de cette valeur
+    #la fonction est 'bind' à l'input, ce qui explique le paramètre value
     def on_search_text(self, instance, value):
         # Trigger a task refresh for each tab
         self.search_query = value
@@ -304,6 +310,9 @@ class TaskListScreen(Screen):
         popup = FilterPopup(self)
         popup.open()
     
+    #cette fonction est appelée plus haut dans apply_filter de Filter popup, elle n'intervient donc qu'en cas de filtres
+    #ici, on utilise filter_func pour créer une query de conditions à vérifier par MongoDB qui nous sort les documents à afficher
+    #dans la classe TaskTab, on a une fonction spéciale pour afficher ces documents là
     def display_filtered_data(self, selected_date, selected_status, selected_category, selected_priority):
         print("category: " + selected_category)
         self.filtered_documents = gcommands.filter_func(selected_date, selected_status, selected_category, selected_priority, self.dbname)
@@ -311,9 +320,7 @@ class TaskListScreen(Screen):
         self.all_tab.filter_feature()
         self.pending_tab.filter_feature()
         self.completed_tab.filter_feature()
-        #self.layout.add_widget(self.end_filter)
 
-    
     def go_add_screen(self, instance):
         self.manager.current = 'add_task'
 
