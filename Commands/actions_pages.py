@@ -86,7 +86,7 @@ class TaskEditionScreen(ScreenBase):
         back_button.bind(on_press=self.go_back)  # Function to go back to the previous screen
         buttons_layout.add_widget(back_button)
         # Save Button
-        save_button = Button(text="Save", background_color=(0, 0, 1, 1), size_hint=(0.4, 1))
+        save_button = Button(text="Save", background_color=(0.035, 0.416, 0.035, 1), size_hint=(0.4, 1))
         save_button.bind(on_press=self.save_task)
         buttons_layout.add_widget(save_button)
         # Add main and buttons layout to the screen
@@ -144,14 +144,16 @@ class TaskAddingScreen(ScreenBase):
         back_button.bind(on_press=self.go_back)  # Function to go back to the previous screen
         buttons_layout.add_widget(back_button)
         # Save Button
-        save_button = Button(text="Save", background_color=(0, 0, 1, 1), size_hint=(0.4, 1))
+        save_button = Button(text="Save", background_color=(0.035, 0.416, 0.035, 1), size_hint=(0.4, 1))
         save_button.bind(on_press=self.save_task)
         buttons_layout.add_widget(save_button)
         # Add main and buttons layout to the screen
         final_layout = BoxLayout(orientation='vertical', spacing=10)
         # Add buttons layout at the top for easier navigation
         # Add the task details below
+        self.error_message = Label(text="", font_size=32, halign='center', valign='middle', markup=True,color =(1, 0, 0, 1))
         final_layout.add_widget(main_layout)
+        final_layout.add_widget(self.error_message)
         final_layout.add_widget(buttons_layout)
 
         self.add_widget(final_layout)
@@ -164,24 +166,47 @@ class TaskAddingScreen(ScreenBase):
 
     #récupère la valeur créée par MDDatePicker au moment du choix de l'utilisateur et l'affecte à date_label.text
     def set_date(self, instance, value, *args):
-        self.date_label.text = f"{value.strftime('%Y-%m-%d')}"
+        self.deadline_input.text = f"{value.strftime('%Y-%m-%d')}"
 
+    #vérifie que tous les champs sont remplis et enregistre les tâches
     def save_task(self, instance):
-        # Logic to save the edited task back to the database
-        # You will need to define how to update the task in your DB here
-        updated_task = {
-            'name': self.project_name_input.text,
-            'description': self.project_description_input.text,
-            'deadline': gcommands.datetime.strptime(self.date_label.text, '%Y-%m-%d'),
-            'category': self.category_input.text,
-            'priority': self.priority_input.text,
-            'status': self.status_input.text,
-        }
-        self.dbname = gcommands.task_creation(updated_task,self.dbname)
-        # Call your database update function here
-        # e.g., update_task_in_db(updated_task)
-        self.go_back(instance)
+        if not self.project_name_input.text.strip():
+            self.show_error("Project name is required.")
+            return
+        if not self.project_description_input.text.strip():
+            self.show_error("Project description is required.")
+            return
+        if self.deadline_input.text == "Select Date:":
+            self.show_error("Please select a valid deadline.")
+            return
+        if self.category_input.text == "Select":
+            self.show_error("Category is required.")
+            return
+        if self.priority_input.text == "Select":
+            self.show_error("Priority is required.")
+            return
+        if self.status_input.text == "Select":
+            self.show_error("Status is required.")
+            return
+
+        # If all fields are valid, create the task
+        try:
+            updated_task = {
+                'name': self.project_name_input.text,
+                'description': self.project_description_input.text,
+                'deadline': gcommands.datetime.strptime(self.deadline_input.text, '%Y-%m-%d'),
+                'category': self.category_input.text,
+                'priority': self.priority_input.text,
+                'status': self.status_input.text,
+            }
+            self.dbname = gcommands.task_creation(updated_task, self.dbname)
+            self.go_back(instance)
+        except ValueError:
+            self.show_error("Invalid deadline format. Please select a date.")
     
+    def show_error(self, message):
+        self.error_message.text = message
+
     def go_back(self, instance):
         # Navigate back to the task list
         self.manager.current = 'task_list'

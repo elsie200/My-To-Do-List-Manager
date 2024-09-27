@@ -141,7 +141,10 @@ class TaskFrame(BoxLayout):
         self.add_widget(task_name)
         # Layout for deadline and status in a row (Grid Layout or BoxLayout)
         task_details_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=40, spacing=10)
-        task_deadline = Label(text="Deadline: " + task['deadline'].strftime('%Y-%m-%d'), size_hint_x=0.4, color=(0, 0, 0, 1))
+        if task['deadline'] < gcommands.datetime.today() and task["status"].lower() != 'completed':
+            task_deadline = Label(text="Deadline: " + task['deadline'].strftime('%Y-%m-%d'), size_hint_x=0.4, color=(1, 0, 0, 1))
+        else:
+            task_deadline = Label(text="Deadline: " + task['deadline'].strftime('%Y-%m-%d'), size_hint_x=0.4, color=(0, 0, 0, 1))
         task_status = Label(text="Status: " + task['status'], size_hint_x=0.4, color=(0, 0, 0, 1))
         # Button to view task details
         view_button = Button(text="View", size_hint_x=0.2)
@@ -371,11 +374,13 @@ class TaskDetailScreen(Screen):
         edit_button.bind(on_press=self.edit_task)
         buttons_layout.add_widget(edit_button)
         # Delete Button
-        delete_button = Button(text="Delete", background_color=(0, 0, 1, 1), size_hint=(0.4, 1))
+        delete_button = Button(text="Delete", background_color=(1, 0, 0, 1), size_hint=(0.4, 1))
         buttons_layout.add_widget(delete_button)
         #size_hint=(1, 1)
         final_layout = BoxLayout(orientation='vertical', spacing=10, size_hint=(1, 1), pos_hint={'center_x': 0.5, 'center_y': 0.5})
+        self.late_task_message = Label(text="", font_size=32, halign='center', valign='middle', markup=True)
         final_layout.add_widget(main_layout)
+        final_layout.add_widget(self.late_task_message)
         final_layout.add_widget(buttons_layout)
 #
         self.add_widget(final_layout)
@@ -389,6 +394,12 @@ class TaskDetailScreen(Screen):
         self.category.text = task['category']
         self.priority.text = task['priority']
         self.status.text = task['status']
+        if task['deadline'] < gcommands.datetime.today() and task["status"].lower() != 'completed':
+            self.late_task_message.text = "This task is late"
+            self.late_task_message.color = (1, 0, 0, 1)  # Red color for error
+        else:
+            self.late_task_message.text = "You still have some time"
+            self.late_task_message.color = (0, 0, 0, 1)
 
     #il y a sur l'écran un edit_button. Quand on clique dessus, cette fonction récupère l'écran d'édition et utilise sa fonction set_task_data pour mettre à jour les infos là bas afin qu'elles soient écrites et affichées
     def edit_task(self, instance):
