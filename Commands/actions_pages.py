@@ -75,6 +75,7 @@ class TaskEditionScreen(ScreenBase):
         super(TaskEditionScreen, self).__init__(**kwargs)
         main_layout = GridLayout(cols=2, padding=10, spacing=10, size_hint=(1, 1))
         self.dbname = dbname
+        self.initial_task = ""
         left_layout, right_layout = self.create_base_layout()
         # Add left and right layouts to the main layout
         main_layout.add_widget(left_layout)
@@ -102,6 +103,7 @@ class TaskEditionScreen(ScreenBase):
     def set_task_data(self, task):
         #grâce à cette fonction, les champs seront pré-remplis de leurs valeurs initiales et il pourra les modifier
         self.project_name_input.text = task['name']
+        self.initial_task = task["name"]
         self.project_description_input.text = task['description']
         self.deadline_input.text = task['deadline'].strftime('%Y-%m-%d')
         self.category_input.text = task['category']
@@ -111,6 +113,7 @@ class TaskEditionScreen(ScreenBase):
     #fonction d'enregistrement des nouvelles 
     def save_task(self, instance):
         updated_task = {
+            'initial_name': self.initial_task,
             'name': self.project_name_input.text,
             'description': self.project_description_input.text,
             'deadline': gcommands.datetime.strptime(self.deadline_input.text, '%Y-%m-%d'),
@@ -159,14 +162,14 @@ class TaskAddingScreen(ScreenBase):
         self.add_widget(final_layout)
     
     #cette fonction crée un calendrier pour que l'utilisateur fasse un choix
-    def open_calendar(self, instance):
-        date_dialog = MDDatePicker()  # Create the date picker
-        date_dialog.bind(on_save=self.set_date)  # Bind the on_save event to set_date
-        date_dialog.open()  # Open the date picker
-
-    #récupère la valeur créée par MDDatePicker au moment du choix de l'utilisateur et l'affecte à date_label.text
-    def set_date(self, instance, value, *args):
-        self.deadline_input.text = f"{value.strftime('%Y-%m-%d')}"
+    #def open_calendar(self, instance):
+    #    date_dialog = MDDatePicker()  # Create the date picker
+    #    date_dialog.bind(on_save=self.set_date)  # Bind the on_save event to set_date
+    #    date_dialog.open()  # Open the date picker
+#
+    ##récupère la valeur créée par MDDatePicker au moment du choix de l'utilisateur et l'affecte à date_label.text
+    #def set_date(self, instance, value, *args):
+    #    self.deadline_input.text = f"{value.strftime('%Y-%m-%d')}"
 
     #vérifie que tous les champs sont remplis et enregistre les tâches
     def save_task(self, instance):

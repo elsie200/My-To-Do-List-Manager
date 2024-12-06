@@ -12,11 +12,6 @@ from kivymd.app import MDApp
 from kivy.uix.image import Image
 
 
-#client = MongoClient('mongodb://localhost:27017/')
-#db = client['my_todo_app']
-#users_collection = db['users']
-
-
 # First screen to choose between Login and Register
 class WelcomeScreen(Screen):
     def __init__(self, **kwargs):
