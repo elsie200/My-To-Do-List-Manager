@@ -96,12 +96,13 @@ def completed_tasks(dbname):
 #function to edit a task
 def task_edition(updated_task, dbname):
     tasks_collection = dbname["tasks"]
-    task_to_edit = tasks_collection.find_one({"name":updated_task["name"],"creator_name":connected_user})
+    task_to_edit = tasks_collection.find_one({"name":updated_task["initial_task"],"creator_name":connected_user})
     edition_list = task_to_edit.get("edited", [])
     if edition_list is None:
         edition_list = []
     edition_list.append(datetime.now())  # This updates the list in place
     updated_task["edited"] = edition_list
+    del updated_task["initial_task"]
     print(updated_task)
     new_fields = {
         "$set": updated_task

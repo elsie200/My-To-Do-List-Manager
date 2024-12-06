@@ -27,11 +27,20 @@ def get_day_with_suffix(day):
 
 #popup pour les filtres
 class FilterPopup(Popup):
-    def __init__(self, task_list_screen, **kwargs):
+    def __init__(self, on_filter_applied, dbname, **kwargs):
         super(FilterPopup, self).__init__(**kwargs)
-        self.task_list_screen = task_list_screen
+        #self.task_list_screen = task_list_screen
+        # on_filter_applied is actually a Callback to handle filtered data and display them
+        self.on_filter_applied = on_filter_applied
+        self.dbname = dbname
         self.title = 'Filter Tasks'
         self.size_hint = (0.8, 0.8)
+        self.selected_filters = {
+            'date': None,
+            'status': "",
+            'category': "",
+            'priority': ""
+        }
         # Create the form layout
         form_layout = GridLayout(cols=2, padding=10, spacing=10)
         # Date Filter
@@ -108,14 +117,16 @@ class FilterPopup(Popup):
     def apply_filter(self, instance):
         # Retrieve the values from the form
         try:
-            selected_date = gcommands.datetime.strptime(self.date_label.text, '%Y-%m-%d')
+            self.selected_filters['date'] = gcommands.datetime.strptime(self.date_label.text, '%Y-%m-%d')
         except:
-            selected_date =  None
-        selected_status = self.status_spinner.text
-        selected_category = self.category_spinner.text
-        selected_priority = self.priority_spinner.text
-        # Trigger the callback with the selected filter values
-        self.task_list_screen.display_filtered_data(selected_date, selected_status, selected_category, selected_priority)
+            self.selected_filters['date'] =  None
+        self.selected_filters['status'] = self.status_spinner.text
+        self.selected_filters['category'] = self.category_spinner.text
+        self.selected_filters['priority'] = self.priority_spinner.text
+        #retrieve the data from the database
+        filtered_data = gcommands.filter_func(self.selected_filters['date'], self.selected_filters['status'], self.selected_filters['category'], self.selected_filters['priority'], self.dbname)
+        # Trigger the callback with the selected filter values to display them
+        self.on_filter_applied(filtered_data)
         # Dismiss the popup
         self.dismiss()
 
@@ -143,7 +154,7 @@ class TaskFrame(BoxLayout):
         self.add_widget(task_name)
         # Layout for deadline and status in a row (Grid Layout or BoxLayout)
         task_details_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=40, spacing=10)
-        if task['deadline'] < gcommands.datetime.today() and task["status"].lower() != 'completed':
+        if task['deadline'] < gcommands.datetime.today() and task["status"].lower() not in ['completed','in progress']:
             task_deadline = Label(text="Deadline: " + task['deadline'].strftime('%Y-%m-%d'), size_hint_x=0.4, color=(1, 0, 0, 1))
         else:
             task_deadline = Label(text="Deadline: " + task['deadline'].strftime('%Y-%m-%d'), size_hint_x=0.4, color=(0, 0, 0, 1))
@@ -229,10 +240,9 @@ class TaskTab(TabbedPanelItem):
             self.task_list_layout.add_widget(task_frame)
     
     #fonction pour filtrer les résultats en fonction des résultats de la fonctionnalité filtre
-    def filter_feature(self):
-        print(self.task_list_screen.filtered_documents)
-        print(self.tasks)
-        filtered_tasks = [task for task in self.tasks if task in self.task_list_screen.filtered_documents]
+    def filter_feature(self, filtered_data):
+        #filtered_data sont les tâches qui correspondent à ce que veut voir l'utilisateur
+        filtered_tasks = [task for task in self.tasks if task in filtered_data]
         self.task_list_layout.clear_widgets()
         # Add tasks to the layout
         for task in filtered_tasks:
@@ -245,9 +255,9 @@ class TaskListScreen(Screen):
         super(TaskListScreen, self).__init__(**kwargs)
         
         self.dbname = dbname
-        #initialisation de la valeur de recherche
+        #initialisation de la valeur de recherche pour la fonction recherche
         self.search_query = ""
-        #iniitialisation de l'élément représentant les valeurs de filtrage
+        #initialisation de l'élément représentant les valeurs de filtrage
         self.filtered_documents = []
         self.layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
         top_section = BoxLayout(orientation='horizontal', size_hint_y=0.1, padding=[10, 10, 10, 10])
@@ -257,8 +267,7 @@ class TaskListScreen(Screen):
         date.bind(size=date.setter('text_size'))
         # Search field (on the right side)
         # Add a Filter button to open the popup
-        self.end_filter = Button(text="Reset", size_hint_x=0.05, height=50)
-        self.end_filter.bind(on_press=self.on_enter)
+
         filter_button = Button(text="Filter Tasks", size_hint_x=0.2, height=50)
         filter_button.bind(on_press=self.show_filter_popup)
         self.search_input = TextInput(hint_text="Search tasks", size_hint_x=0.5, multiline=False)
@@ -304,25 +313,70 @@ class TaskListScreen(Screen):
         self.all_tab.filter_tasks()
         self.pending_tab.filter_tasks()
         self.completed_tab.filter_tasks()
-    
-    def show_filter_popup(self, instance):
-        # Open the Filter Popup
-        popup = FilterPopup(self)
-        popup.open()
-    
+
     #cette fonction est appelée plus haut dans apply_filter de Filter popup, elle n'intervient donc qu'en cas de filtres
     #ici, on utilise filter_func pour créer une query de conditions à vérifier par MongoDB qui nous sort les documents à afficher
     #dans la classe TaskTab, on a une fonction spéciale pour afficher ces documents là
-    def display_filtered_data(self, selected_date, selected_status, selected_category, selected_priority):
-        print("category: " + selected_category)
-        self.filtered_documents = gcommands.filter_func(selected_date, selected_status, selected_category, selected_priority, self.dbname)
-        # Apply the filter to tasks
-        self.all_tab.filter_feature()
-        self.pending_tab.filter_feature()
-        self.completed_tab.filter_feature()
+    def display_filtered_data(self,filtered_data): #, selected_features
+        #print("category: " + selected_category)
+        #self.filtered_documents = gcommands.filter_func(selected_features['date'], selected_features['status'], selected_features['category'], selected_features['priority'], self.dbname)
+        ## Apply the filter to tasks
+        #print("Filtered Documents:", self.filtered_documents)
+        self.all_tab.filter_feature(filtered_data)
+        self.pending_tab.filter_feature(filtered_data)
+        self.completed_tab.filter_feature(filtered_data)
+    
+    def show_filter_popup(self, instance):
+        # Open the Filter Popup
+        popup = FilterPopup(self.display_filtered_data, self.dbname)
+        popup.open()
+        #popup.apply_filter(instance)
+        #self.display_filtered_data(popup.selected_filters)
+
 
     def go_add_screen(self, instance):
         self.manager.current = 'add_task'
+
+
+class ConfirmationPopup(Popup):
+    def __init__(self, title="Are you sure?", message="Do you want to proceed?", **kwargs):
+        super(ConfirmationPopup, self).__init__(**kwargs)
+        self.title = title
+        self.size_hint = (0.6, 0.4)
+        self.decision = ""
+
+        # Layout for the popup
+        layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
+        # Message label
+        layout.add_widget(Label(text=message, halign='center', valign='middle', size_hint_y=0.7))
+        # Buttons layout
+        button_layout = BoxLayout(size_hint_y=0.3, spacing=20)
+        # Yes button
+        yes_button = Button(text="Yes", background_color=(0, 1, 0, 1))
+        yes_button.bind(on_press=self.on_confirm)
+        # No button
+        no_button = Button(text="No", background_color=(1, 0, 0, 1))
+        no_button.bind(on_press=self.on_dismiss)
+        
+        # Add buttons to button layout
+        button_layout.add_widget(yes_button)
+        button_layout.add_widget(no_button)
+        
+        # Add button layout to main layout
+        layout.add_widget(button_layout)
+        
+        self.content = layout
+        
+    def on_confirm(self, instance):
+        self.decision = 'Yes'
+        self.dismiss()  # Trigger on_dismiss and call the callback
+
+    def on_dismiss(self, instance=None):
+        if not hasattr(self, 'decision'):
+            self.decision = 'No'
+        super().on_dismiss()  # Ensure the default dismiss behavior
+
+
 
 # Task Detail Screen
 class TaskDetailScreen(Screen):
@@ -382,6 +436,7 @@ class TaskDetailScreen(Screen):
         buttons_layout.add_widget(edit_button)
         # Delete Button
         delete_button = Button(text="Delete", background_color=(1, 0, 0, 1), size_hint=(0.4, 1))
+        delete_button.bind(on_press=self.delete)
         buttons_layout.add_widget(delete_button)
         #size_hint=(1, 1)
         final_layout = BoxLayout(orientation='vertical', spacing=10, size_hint=(1, 1), pos_hint={'center_x': 0.5, 'center_y': 0.5})
@@ -424,9 +479,17 @@ class TaskDetailScreen(Screen):
     #il y a un bouton delete sur l'écran. Cette fonction permet de supprimer la tâche que l'utilisateur visualisait
     def delete(self, instance):
         task_name = self.project_name.text
-        #afficher le pop up. Si la réponse est oui, alors on appelle la fonction de déletion
-        self.dbname = gcommands.task_deletion(task_name, self.dbname)
-        self.go_back(instance)
+
+        # Define a callback that will be called when the popup is dismissed
+        def on_popup_dismiss(decision):
+            if decision == 'Yes':
+                self.dbname = gcommands.task_deletion(task_name, self.dbname)
+            self.go_back(instance)
+
+        # Create the popup and set the callback for dismissal
+        popup = ConfirmationPopup()
+        popup.bind(on_dismiss=lambda *args: on_popup_dismiss(popup.decision))
+        popup.open()
 
     def go_back(self, instance):
         # Navigate back to the task list
